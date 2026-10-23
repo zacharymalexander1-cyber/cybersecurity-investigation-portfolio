@@ -1,4 +1,4 @@
-# Case 001 — Phishing Email Investigation
+# Case XXX — Event
 
 ## Objective
 Investigate a suspicious email, identify indicators of compromise, and determine whether escalation is necessary.
