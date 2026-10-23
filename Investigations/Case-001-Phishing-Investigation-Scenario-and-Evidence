@@ -1,0 +1,210 @@
+Case 001 — Microsoft 365 Account Security Alert
+Case Status: Investigation Completed — Escalation Recommended
+Tier 1 SOC
+Simulated incident
+
+Your assignment
+You're a Tier 1 SOC Analyst working for a fictional company, Northstar Technologies.
+
+At 08:42 AM, the security team receives a report from an employee about a suspicious email claiming to be from Microsoft 365.
+
+Your supervisor assigns you the investigation.
+
+Your objectives:
+1. Analyze the email for suspicious characteristics.
+2. Examine the sender and URL.
+3. Identify and document potential indicators of compromise.
+4. Determine whether the email is malicious, benign, or inconclusive.
+5. Determine what additional evidence would be needed to establish whether the recipient interacted with it.
+6. Recommend appropriate security actions.
+7. Write a professional incident report.
+You are responsible for your conclusions. Not every question will have enough evidence to answer definitively.
+Evidence A — Reported email
+Reported email
+
+PHISH-001-A
+
+
+From	security@micros0ft-support.com
+To	j.smith@company.example
+Date	Oct 22, 2026, 08:42 AM
+Subject	URGENT: Your Microsoft 365 Account Will Be Disabled
+Attachment	None
+
+
+Dear Employee,
+
+Our security system has detected unusual activity on your Microsoft 365 account.
+
+Your account will be permanently disabled within 24 hours unless you verify your identity.
+
+Please click the link below and sign in using your corporate credentials.
+Verify Your Account Now
+
+Displayed link destination: https://login-microsoft365.example/verify
+
+Microsoft 365 Security Team
+
+Training note: The URL is a fictional placeholder, not a live investigation target. Do not visit it or submit it to public scanning services. No email headers, click logs, or authentication logs have been supplied yet.
+Your investigative tasks
+01
+
+Email inspection
+
+Document what you observe in the message and explain which details warrant investigation.
+
+
+02
+
+Sender and URL analysis
+
+Identify what can be established from the supplied addresses and what would require additional technical evidence.
+
+
+03
+
+Evidence requirements
+
+Determine which email, authentication, and network records you would request to investigate user interaction.
+
+
+04
+
+Classification and response
+
+Record your assessment, confidence level, unanswered questions, and recommended actions.
+
+
+Case 001 — Proxy Logs
+Filtered: j.smith
+22 matching records
+
+All records are from October 22, 2026. Times are CDT (UTC−05:00).
+Time	Method	URL	Status	Bytes out
+08:40	GET	bing.com/search?q=weather	200	616
+08:48	GET	bing.com/search?q=weather	200	510
+08:49	GET	intranet.company.example/home	200	958
+08:51	GET	login-microsoft365.example/verify	200	702
+08:53	POST	login-microsoft365.example/session	302	1,438
+08:54	GET	login.microsoftonline.com	200	421
+08:56	GET	intranet.company.example/home	200	499
+09:11	GET	outlook.office.com/mail	200	921
+09:14	GET	intranet.company.example/home	200	1,150
+09:26	GET	login.microsoftonline.com	200	1,207
+09:27	GET	intranet.company.example/home	200	538
+09:29	GET	login.microsoftonline.com	200	280
+09:39	GET	bing.com/search?q=weather	200	1,562
+09:40	GET	intranet.company.example/home	200	1,844
+09:41	GET	outlook.office.com/mail	200	1,199
+09:42	GET	intranet.company.example/home	200	1,496
+09:47	GET	bing.com/search?q=weather	200	573
+09:48	GET	intranet.company.example/home	200	1,703
+09:50	GET	login.microsoftonline.com	200	581
+09:52	GET	outlook.office.com/mail	200	1,292
+10:04	GET	login.microsoftonline.com	200	807
+10:08	GET	intranet.company.example/home	200	1,643
+
+Common fields across all 22 records: User j.smith · Device WS-014 · Source IP 10.20.4.14 · Action allowed. URLs abbreviated for display; all use HTTPS.
+
+Case 001 — Microsoft Entra ID Sign-In Logs
+Filtered: j.smith@company.example
+14 matching records
+
+Date: October 22, 2026
+Time zone: CDT (UTC−05:00)
+Time	Source IP	Location	Sign-in status	MFA result
+08:32	10.20.4.14	Houston, US	Success	Satisfied
+08:51	10.20.4.14	Houston, US	Success	Satisfied
+08:52	10.20.4.14	Houston, US	Success	Satisfied
+08:59	198.51.100.88	Unknown	Failure	Not satisfied
+09:00	10.20.4.14	Houston, US	Success	Not required
+09:01	198.51.100.88	Unknown	Success	Satisfied
+09:08	10.20.4.14	Houston, US	Success	Satisfied
+09:12	10.20.4.14	Houston, US	Failure	Not required
+09:16	10.20.4.14	Houston, US	Success	Not required
+09:19	10.20.4.14	Houston, US	Success	Satisfied
+09:27	10.20.4.14	Houston, US	Success	Not required
+09:45	10.20.4.14	Houston, US	Success	Not required
+09:46	10.20.4.14	Houston, US	Success	Satisfied
+09:50	10.20.4.14	Houston, US	Failure	Satisfied
+
+
+
+
+# Case 001 — Phishing Email Investigation
+
+## Objective
+Investigate a suspicious email, identify indicators of compromise, and determine whether escalation is necessary.
+
+## Initial Alert
+- Date: Oct 22, 2026, 08:42 AM
+- Alert source: Employee-reported suspicious email
+- Sender:security@micros0ft-support.com
+- Recipient:j.smith@company.example
+- Subject:URGENT: Your Microsoft 365 Account Will Be Disabled
+
+## Investigation Steps
+
+| Step | Action Performed                                                   | Tool / Evidence Source                                  | Result                                                                                                            |
+| ---- | ------------------------------------------------------------------ | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1    | Reviewed the reported email's sender, subject, and embedded URL.   | Manual email inspection                                 | Identified suspicious email characteristics.                                                                      |
+| 2    | Filtered web proxy records for `j.smith`.                          | Simulated `proxy_events.csv` logs, reviewed in ChatGPT  | Identified web activity associated with the affected user.                                                        |
+| 3    | Examined HTTP requests to the suspicious domain.                   | Simulated web proxy logs                                | Identified GET and POST requests at 08:51 and 08:53 AM.                                                           |
+| 4    | Reviewed outbound data volume and HTTP response codes.             | Simulated web proxy logs                                | Observed 1,438 bytes sent in a POST request; contents unknown.                                                    |
+| 5    | Filtered authentication records for `j.smith`.                     | Simulated `signin_events.csv` logs, reviewed in ChatGPT | Identified authentication activity following the suspicious web requests.                                         |
+| 6    | Compared sign-in timestamps, source IP addresses, and MFA results. | Simulated Microsoft Entra ID sign-in logs               | Identified a failed sign-in at 08:59 AM and a successful sign-in at 09:01 AM from the same unfamiliar IP address. |
+
+
+
+## Indicators of Compromise
+- Suspicious domains:
+micros0ft-support.com — Sender domain impersonating Microsoft.
+login-microsoft365.example — Suspicious website associated with the phishing email and subsequent web requests.
+- URLs:
+https://login-microsoft365.example/verify — URL provided in the phishing email and accessed by the user's device.
+https://login-microsoft365.example/session — Destination of the POST request observed at 08:53 AM.
+- IP addresses: 198.51.100.88 — Unfamiliar source IP associated with failed and successful authentication attempts for the affected account.
+- File hashes:None identified. No attachments or malicious files were provided for analysis.
+
+## Findings
+
+Log Investigation: 
+
+Proxy Logs
+Time	Method	URL	Bytes out	Status
+08:51	GET	login-microsoft365.example/verify	702	200
+08:53	POST	login-microsoft365.example/session	1,438	302
+
+Microsoft Entra ID Sign-In Logs
+08:59	198.51.100.88	Unknown	Failure	Not satisfied
+09:00	10.20.4.14	Houston, US	Success	Not required
+09:01	198.51.100.88	Unknown	Success	Satisfied
+
+First observations: 
+The email used is security@micros0ft-support.com. Common of attackers to use 0 to seem like a legit email.   
+The subject is the next thing that stands out. It is creating a sense of urgency.
+
+Log Findings: 
+At 8:51 the user accessed the suspicious URL, then at 8:53 the user sent a POST request of 1,438 bytes of data to the suspicious domain provided in the email.
+At 8:59 AM, a sign-in attempt to j.smith's account originated from IP address 198.51.100.88, from an unknown location. The sign-in failed, and MFA was not satisfied.
+However at 9:01 the same IP address tried again and sign-in was successful, MFA results satisfied.
+
+
+## Incident Classification
+- True positive / False positive / Inconclusive: True Positive
+- Severity: High
+- Reason: Logs show user accessed the suspicious URL and a POST request was sent. After which a sign in was successful from an IP address at an unknown location.
+
+## Recommended Response
+1. Temporarily block the account from signing in.
+2. Revoke active sessions and refresh tokens to help terminate existing access.
+3. Reset the user's password through trusted process.
+4. Review registered MFA methods for unauthorized changes and require secure MFA re-registration if necessary.
+5. Escalate to incident response team to investigate potential account compromise.
+
+## Lessons Learned
+
+This investigation helped me understand how to correlate web proxy logs and authentication logs to identify potential account compromise following a phishing attempt.
+I learned the importance of distinguishing confirmed evidence from assumptions. Although the logs showed a POST request to a suspicious website, they did not confirm that credentials were submitted.
+I also learned that successful authentication from an unfamiliar IP address, especially following suspicious activity, warrants further investigation and potentially immediate containment.
+In future investigations, I would examine additional authentication details, MFA activity, and account activity to determine whether unauthorized access occurred.
