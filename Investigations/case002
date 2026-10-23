@@ -1,0 +1,276 @@
+
+# Case 002 — Brute-Force Authentication Investigation
+
+## Objective
+
+Investigate multiple failed authentication attempts against a Windows server to determine whether the activity represents a brute-force attack, identify potentially affected accounts, assess whether unauthorized access occurred, and recommend appropriate incident response actions.
+
+## Initial Alert
+
+| Field | Details |
+|---|---|
+| Date | October 23, 2026 |
+| Time | 09:15 AM CDT |
+| Organization | Northstar Technologies (Simulated) |
+| Alert Source | Security Monitoring System |
+| Alert Name | Excessive Failed Logons |
+| Initial Severity | Medium |
+| Affected Host | `FS-01` |
+| Operating System | Windows Server 2022 |
+| Targeted Account | `n.johnson` |
+| Source IP Address | `10.20.8.45` |
+| Detection Threshold | 10 failed authentication attempts within 5 minutes |
+
+### Alert Description
+
+The Security Operations Center (SOC) received an alert identifying excessive failed authentication attempts against Windows server `FS-01`.
+The alert indicated that account `n.johnson` experienced repeated authentication failures originating from internal IP address `10.20.8.45`.
+An investigation was initiated to determine whether the activity resulted from malicious authentication attempts, legitimate user error, or an improperly configured application or service.
+
+---
+
+## Investigation Steps
+
+| Step | Action Performed | Tool / Evidence Source | Result |
+|---|---|---|---|
+| 1 | Reviewed the initial alert to identify the affected host, targeted account, source IP, and detection threshold. | Simulated SOC alert | Identified `FS-01`, account `n.johnson`, and source IP `10.20.8.45`. |
+| 2 | Reviewed failed Windows authentication events and their timestamps. | Simulated Windows Security Event ID `4625` records | Identified 12 failed network logon attempts between 09:10:12 and 09:12:34 CDT. |
+| 3 | Examined logon types, failure codes, and authentication mechanisms. | Simulated Windows Security logs | Observed Logon Type 3 and status `0xC000006D` with substatus `0xC000006A`, indicating an incorrect password. |
+| 4 | Searched for successful authentication activity involving the targeted account and source IP. | Simulated Event ID `4624` records | Identified a successful network logon from the same source IP at 09:13:02 CDT. |
+| 5 | Reviewed account lockout and credential validation records. | Simulated Event IDs `4740` and `4776` | No account lockout event was present in the supplied evidence; repeated unsuccessful NTLM credential validations were observed. |
+| 6 | Correlated failed and successful authentication events by account, source IP, destination host, and timestamp. | Simulated Windows Security logs | Established that repeated failed logons were followed by a successful logon from the same source IP. |
+| 7 | Evaluated the incident and documented response recommendations. | Investigation findings | Classified the simulated activity as a true-positive suspicious authentication incident, assessed High severity, and recommended escalation. |
+
+---
+
+## Evidence Reviewed
+
+**Evidence Type:** Simulated Windows Security Event Logs  
+**Environment:** Windows Server 2022  
+**Host:** `FS-01`  
+**Time Zone:** CDT
+
+> **Note:** All records in this investigation are fictional and were created for cybersecurity training purposes.
+
+### Evidence A — Failed Authentication Attempts
+
+**Windows Event ID:** `4625` — An account failed to log on.
+
+| Timestamp | Event ID | Account | Source IP | Logon Type | Status | Substatus |
+|---|---|---|---|---|---|---|
+| 09:10:12 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:10:25 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:10:39 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:10:52 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:11:06 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:11:19 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:11:33 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:11:46 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:12:00 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:12:13 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:12:27 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+| 09:12:34 | 4625 | n.johnson | 10.20.8.45 | 3 | 0xC000006D | 0xC000006A |
+
+**Event Interpretation:**
+
+- **4625:** Failed Windows logon.
+- **Logon Type 3:** Network logon rather than an interactive console logon.
+- **Status `0xC000006D`:** Authentication failure.
+- **Substatus `0xC000006A`:** Incorrect password.
+
+All 12 events identify the same account, destination host, and source IP address.
+
+### Evidence B — Successful Authentication
+
+**Windows Event ID:** `4624` — An account was successfully logged on.
+
+| Field | Value |
+|---|---|
+| Timestamp | 09:13:02 CDT |
+| Event ID | 4624 |
+| Account | `n.johnson` |
+| Source IP | `10.20.8.45` |
+| Destination Host | `FS-01` |
+| Logon Type | 3 |
+| Authentication Package | NTLM |
+| Result | Success |
+
+The successful logon occurred **28 seconds after the final failed authentication attempt**.
+
+This confirms a successful network logon from the same source IP. However, the record alone does not establish whether the activity was authorized.
+
+### Evidence C — NTLM Credential Validation
+
+**Windows Event ID:** `4776` — The computer attempted to validate credentials for an account.
+
+| Timestamp | Event ID | Account | Result |
+|---|---|---|---|
+| 09:10:12 | 4776 | n.johnson | Failure — `0xC000006A` |
+| 09:10:52 | 4776 | n.johnson | Failure — `0xC000006A` |
+| 09:11:33 | 4776 | n.johnson | Failure — `0xC000006A` |
+| 09:12:13 | 4776 | n.johnson | Failure — `0xC000006A` |
+| 09:13:02 | 4776 | n.johnson | Success — `0x0` |
+
+These selected events support the pattern of unsuccessful credential validation followed by successful authentication.
+
+In an actual Windows domain environment, Event ID `4776` is typically reviewed on the system performing NTLM credential validation, often a domain controller.
+
+### Evidence D — Account Lockout Review
+
+**Windows Event ID:** `4740` — A user account was locked out.
+
+No account lockout event was present in the supplied simulated records.
+
+This does not establish that no account lockout occurred elsewhere in the environment.
+
+---
+
+## Indicators of Compromise / Suspicious Indicators
+
+| Indicator Type | Value | Description |
+|---|---|---|
+| Source IP | `10.20.8.45` | Origin of repeated failed logons and subsequent successful authentication |
+| Targeted Account | `n.johnson` | Account involved in the authentication sequence |
+| Affected Host | `FS-01` | Windows server receiving the authentication attempts |
+| Event ID | `4625` | Repeated failed authentication attempts |
+| Event ID | `4624` | Successful authentication following the failures |
+| Event ID | `4776` | NTLM credential validation |
+| Logon Type | `3` | Network authentication |
+| Authentication Protocol | NTLM | Protocol used during the simulated authentication activity |
+
+**Additional Indicators:**
+
+- Suspicious domains: None identified.
+- Suspicious URLs: None identified.
+- File hashes: None identified.
+- External malicious IP addresses: None identified.
+
+> The source IP `10.20.8.45` is a private internal address. Its presence in the logs does not independently establish malicious activity.
+
+---
+
+## Findings
+
+### Finding 1 — Repeated Authentication Failures
+
+Between **09:10:12 and 09:12:34 CDT**, 12 failed authentication attempts were recorded against account `n.johnson` on server `FS-01`.
+The attempts originated from `10.20.8.45` and occurred within approximately two minutes and 22 seconds.
+The activity exceeded the configured monitoring threshold of 10 failed logons within five minutes.
+The repeated failures are consistent with potential automated password guessing. However, the evidence does not conclusively distinguish an attack from an application or service using outdated credentials.
+
+### Finding 2 — Incorrect Password Errors
+  
+The failed authentication events contained:
+- Status: `0xC000006D`
+- Substatus: `0xC000006A`
+
+These codes indicate authentication failures involving an incorrect password.
+The supplied records do not identify which passwords were attempted or whether an automated tool generated them.
+
+### Finding 3 — Successful Authentication Following Failures
+
+At **09:13:02 CDT**, Event ID `4624` recorded a successful network logon for account `n.johnson` from source IP `10.20.8.45`.
+The successful logon occurred 28 seconds after the final failed attempt.
+This sequence raises concern that valid credentials may have been obtained or entered after repeated authentication failures.
+However, the evidence does not prove that the successful authentication was unauthorized. Legitimate user activity or a corrected service configuration remains possible.
+
+### Finding 4 — No Confirmed Account Lockout
+
+No Event ID `4740` was identified in the supplied simulated evidence.
+Additional domain controller logs and account security records would be necessary to determine whether an account lockout occurred.
+
+### Finding 5 — Potential Unauthorized Access
+
+The successful network logon to `FS-01` creates a potential risk of unauthorized access to server resources.
+The supplied evidence does not establish that files were accessed, modified, transferred, or deleted.
+Additional file access logs, endpoint telemetry, and user verification would be required to assess the impact.
+
+---
+
+## Incident Classification
+
+| Classification Field | Assessment |
+|---|---|
+| Alert Classification | True Positive — Suspicious Authentication Activity |
+| Suspected Attack Type | Brute-Force Password Guessing |
+| Severity | High |
+| Account Compromise | Suspected — Not Confirmed |
+| Investigation Status | Completed — Escalation Recommended |
+
+### Classification Reasoning
+
+The alert was classified as a **True Positive** because the simulated Windows Security logs confirmed excessive failed authentication activity.
+Twelve failed logons targeted the same account from the same source IP within approximately two minutes and 22 seconds. A successful network logon followed shortly afterward.
+The pattern is consistent with a potential brute-force authentication attack and warrants further investigation.
+**High severity** was assigned because the repeated authentication failures were followed by a successful logon to a Windows server, creating a plausible risk of unauthorized access.
+Although the authentication pattern is suspicious, the evidence does not conclusively establish that a malicious actor controlled the source device or compromised the account.
+
+---
+
+## Recommended Response
+
+1. **Escalate to the Incident Response Team**
+   - Provide the authentication timeline, affected account, source IP, destination host, and supporting Windows Event IDs.
+
+2. **Identify the Source Device**
+   - Determine which endpoint or service was assigned `10.20.8.45` during the incident.
+   - Review DHCP records, asset inventory, and endpoint telemetry.
+
+3. **Verify Activity with the Account Owner**
+   - Contact the account owner through a trusted communication channel.
+   - Determine whether the authentication attempts were expected.
+
+4. **Restrict Access if Unauthorized Activity Is Suspected**
+   - Coordinate temporary account restrictions or session termination with incident response personnel.
+   - Consider potential operational impact before applying containment.
+
+5. **Reset Credentials if Compromise Is Suspected**
+   - Require a secure password reset.
+   - Investigate possible credential reuse across other systems.
+
+6. **Review Server and File Access Activity**
+   - Examine available file share access events and session records.
+   - Determine whether sensitive resources were accessed following the successful authentication.
+
+7. **Investigate the Source Endpoint**
+   - Review running processes, scheduled tasks, services, and stored credentials.
+   - Identify possible causes of repeated NTLM authentication attempts.
+
+8. **Review Authentication Security Controls**
+   - Evaluate account lockout policies.
+   - Review password protections, NTLM usage, and alerting thresholds.
+
+9. **Continue Monitoring**
+   - Monitor for additional failed authentication attempts.
+   - Investigate unexpected successful logons, lateral movement, or suspicious account activity.
+
+**Note:** These are recommended response actions. No actual production systems or accounts were modified.
+
+---
+
+## Lessons Learned
+
+This simulated investigation demonstrated how Windows Security Event IDs can be correlated to investigate suspicious authentication activity.
+Event ID `4625` provides information about failed logons, while Event ID `4624` identifies successful logons. Event ID `4776` can provide additional information about NTLM credential validation, and Event ID `4740` is relevant when investigating account lockouts.
+An important lesson is that repeated failed authentication attempts followed by a successful logon warrant investigation but do not automatically prove a brute-force attack or account compromise.
+The investigation also reinforced the importance of understanding Windows logon types, authentication failure codes, and the relationship between source devices, user accounts, and destination systems.
+In future investigations, additional evidence from domain controllers, endpoint monitoring, account owners, and file access auditing would help distinguish legitimate authentication failures from malicious activity.
+
+---
+
+## Final Summary
+
+The simulated investigation identified **12 failed network authentication attempts** against account `n.johnson` on Windows server `FS-01`, followed by a successful logon from the same source IP address.
+The activity exceeded the configured detection threshold and demonstrated a pattern consistent with potential password guessing.
+The alert was classified as a **True Positive for suspicious authentication activity**, with **High severity** assigned due to the successful logon following repeated failures.
+Although unauthorized account access was not conclusively established, the observed sequence justified escalation and additional investigation.
+
+**Final Status: Investigation Completed — Escalation Recommended**
+
+---
+
+## Simulation Disclaimer
+
+This investigation is a fictional cybersecurity training exercise.
+All event records, timestamps, systems, accounts, and outcomes were constructed for educational purposes.
+The report demonstrates analysis of supplied simulated evidence and does not represent a real security incident, independently collected Windows logs, or containment actions performed in a production environment.
